@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost Atlantis | Command Center</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+    
+    <div class="container">
+        <header class="brand-header">
+            <h1 style="font-size: 24px; margin: 0; font-weight: 600; letter-spacing: 5px;">COMMAND CENTER</h1>
+            <div style="display:flex; gap:15px;">
+                <button onclick="window.location.href='shop.html'" class="btn-lock">PREVIEW SHOP</button>
+                <button onclick="toggleLaunch()" id="st" class="btn-lock" style="border-color: #34C759; color: #34C759;"></button>
+                <button onclick="logout()" class="btn-lock" style="opacity: 0.5;">LOGOUT</button>
+            </div>
+        </header>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+            <div class="stat-box">
+                <p style="font-size:10px; color:#555; letter-spacing:3px;">VISITORS</p>
+                <h2 id="stat-visitors" style="margin: 10px 0; font-weight: 300;">1,284</h2>
+            </div>
+            <div class="stat-box">
+                <p style="font-size:10px; color:#555; letter-spacing:3px;">EARNINGS</p>
+                <h2 id="stat-earnings" style="margin: 10px 0; color: #fff;">AED 0.00</h2>
+            </div>
+            <div class="stat-box">
+                <p style="font-size:10px; color:#555; letter-spacing:3px;">SOLD</p>
+                <h2 id="stat-sold" style="margin: 10px 0; font-weight: 300;">0</h2>
+            </div>
+            <div class="stat-box">
+                <p style="font-size:10px; color:#555; letter-spacing:3px;">WAITLIST</p>
+                <h2 id="stat-waitlist" style="margin: 10px 0; color: #fff;">0</h2>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div class="admin-card">
+                <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">PUBLISH DESIGN</h3>
+                <input type="text" id="pName" placeholder="ITEM NAME" class="blueprint-input">
+                <input type="number" id="pPrice" placeholder="PRICE (AED)" class="blueprint-input">
+                <select id="pCat" class="blueprint-input">
+                    <option value="streetwear">STREETWEAR</option>
+                    <option value="accessories">ACCESSORIES</option>
+                </select>
+                <button onclick="publishItem()" class="btn-lock" style="width: 100%; margin-top: 10px;">ENCRYPT & PUBLISH</button>
+            </div>
+
+            <div class="admin-card">
+                <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">WAITLIST SIGNUPS</h3>
+                <div id="waitlistLog" style="max-height: 250px; overflow-y: auto; font-size: 12px;">
+                    <p style="color: #444; letter-spacing: 2px;">SCANNING FOR SIGNALS...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Security Check
+        if(localStorage.getItem('la_role') !== 'admin') window.location.href = 'index.html';
+
+        function logout() {
+            localStorage.removeItem('la_role');
+            window.location.href = 'index.html';
+        }
+
+        function toggleLaunch() {
+            let s = localStorage.getItem('la_site_status') === 'LIVE' ? 'MAINTENANCE' : 'LIVE';
+            localStorage.setItem('la_site_status', s);
+            render();
+        }
+
+        function publishItem() {
+            const name = document.getElementById('pName').value;
+            const price = document.getElementById('pPrice').value;
+            const cat = document.getElementById('pCat').value;
+            
+            if(!name || !price) return alert("INCOMPLETE DATA.");
+            
+            let items = JSON.parse(localStorage.getItem('la_products')) || [];
+            items.push({ name, price, category: cat, id: Date.now() });
+            localStorage.setItem('la_products', JSON.stringify(items));
+            
+            alert("ITEM PUBLISHED TO THE DEPTHS.");
+            location.reload();
+        }
+
+        function render() {
+            const s = localStorage.getItem('la_site_status') || 'MAINTENANCE';
+            const btn = document.getElementById('st');
+            btn.innerText = s;
+            btn.style.borderColor = s === 'LIVE' ? '#34C759' : '#ff3b30';
+            btn.style.color = s === 'LIVE' ? '#34C759' : '#ff3b30';
+            
+            const list = JSON.parse(localStorage.getItem('la_waitlist')) || [];
+            document.getElementById('stat-waitlist').innerText = list.length;
+            document.getElementById('waitlistLog').innerHTML = list.reverse().map(u => 
+                `<div style="padding:15px 0; border-bottom:1px solid #1a1a1a; display:flex; justify-content:space-between; align-items:center;">
+                    <span><b class="yellow-text">${u.user || 'UNNAMED'}</b> <span style="opacity:0.4; margin-left:10px;">${u.email}</span></span>
+                    <span style="color:#333; font-size:9px; letter-spacing:1px;">${u.date}</span>
+                </div>`).join('') || '<p style="color: #444; letter-spacing: 2px;">NO SIGNALS DETECTED.</p>';
+        }
+
+        render();
+    </script>
+</body>
+</html>

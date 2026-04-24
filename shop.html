@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost Atlantis | Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    
+    <div class="container">
+        <header class="brand-header">
+            <div style="display:flex; gap: 15px;">
+                <button onclick="window.location.href='admin.html'" class="btn-lock">ADMIN</button>
+                <button onclick="logout()" class="btn-lock">LOGOUT</button>
+            </div>
+            <img src="logo-cursive.png" alt="Lost Atlantis" class="mini-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
+            <div id="menu-btn" class="yellow-text" style="cursor:pointer; font-weight:bold;">☰ MENU</div>
+        </header>
+
+        <section style="margin-bottom: 80px;">
+            <div style="display: flex; gap: 30px; margin-bottom: 40px; opacity: 0.6; font-size: 10px; letter-spacing: 4px;">
+                <span>ALL</span>
+                <span>STREETWEAR</span>
+                <span>ACCESSORIES</span>
+            </div>
+            <h1 class="brand-title" style="font-size: 42px; margin: 0; font-weight: 100; letter-spacing: 20px;">COLLECTION _01</h1>
+            <p style="font-style: italic; color: #666; letter-spacing: 2px;">"Claim the Depths"</p>
+        </section>
+
+        <div id="product-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px;">
+            <!-- Products will be injected here -->
+            <div class="product-card">
+                <div style="height: 300px; background: #111; margin-bottom: 20px; display:flex; align-items:center; justify-content:center; color:#333;">IMAGE_PENDING</div>
+                <h3 style="font-size: 14px; letter-spacing: 3px; margin: 0;">LOST HOODIE</h3>
+                <p style="color: var(--accent-color); font-size: 12px; margin: 10px 0;">AED 250.00</p>
+                <button class="btn-lock" style="width: 100%;">ADD TO CART</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('la_role');
+            window.location.href = 'index.html';
+        }
+
+        // Simple render of existing items if any
+        function renderProducts() {
+            const items = JSON.parse(localStorage.getItem('la_products')) || [];
+            const grid = document.getElementById('product-grid');
+            if(items.length > 0) {
+                // Keep the placeholder for now but add real items
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <div style="height: 300px; background: #111; margin-bottom: 20px; display:flex; align-items:center; justify-content:center; color:#333;">${item.category.toUpperCase()}</div>
+                        <h3 style="font-size: 14px; letter-spacing: 3px; margin: 0;">${item.name.toUpperCase()}</h3>
+                        <p style="color: var(--accent-color); font-size: 12px; margin: 10px 0;">AED ${item.price}</p>
+                        <button class="btn-lock" style="width: 100%;">ADD TO CART</button>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        }
+        renderProducts();
+    </script>
+</body>
+</html>

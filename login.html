@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost Atlantis | Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600&display=swap" rel="stylesheet">
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; }
+    </style>
+</head>
+<body>
+    <div class="admin-card" style="width: 320px; text-align: center;">
+        <img src="logo-cursive.png" alt="Lost Atlantis" style="height: 30px; margin-bottom: 30px; opacity: 0.8;">
+        <h2 style="font-size: 10px; margin-bottom: 25px; letter-spacing: 5px;">RESTRICTED ACCESS</h2>
+        <input type="password" id="pass" placeholder="ENTER ACCESS KEY" class="blueprint-input" style="text-align: center;">
+        <button onclick="doLogin()" class="btn-lock" style="width: 100%;">UNLOCK SYSTEM</button>
+    </div>
+
+    <script>
+        function doLogin() {
+            const p = document.getElementById('pass').value;
+            if(p === "atlantis2026") {
+                localStorage.setItem('la_role', 'admin');
+                window.location.href = 'admin.html';
+            } else { 
+                alert("ACCESS DENIED."); 
+            }
+        }
+    </script>
+</body>
+</html>
