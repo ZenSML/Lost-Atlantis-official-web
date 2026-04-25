@@ -36,8 +36,9 @@
             <div id="form-container">
                 <h2 style="font-size: 14px; letter-spacing: 8px; margin-bottom: 40px; font-weight: 300;">THE WAITING LIST</h2>
                 <input type="text" id="w-user" placeholder="USERNAME" class="blueprint-input">
-                <input type="email" id="w-email" placeholder="EMAIL ADDRESS" class="blueprint-input">
-                <input type="password" id="w-pass" placeholder="PASSWORD" class="blueprint-input">
+                <input type="email" id="w-email" placeholder="username@gmail.com" class="blueprint-input">
+                <input type="password" id="w-pass" placeholder="CREATE PASSWORD" class="blueprint-input" minlength="6">
+                <p id="form-error" style="color: #ff4444; font-size: 9px; letter-spacing: 2px; margin-bottom: 15px; display: none;"></p>
                 <button onclick="joinWaitlist()" class="btn-enter" style="margin-top: 10px;">JOIN THE WAITING LIST</button>
                 <p onclick="closeWaitlist()" style="font-size: 9px; letter-spacing: 3px; color: #444; margin-top: 30px; cursor: pointer;">CANCEL</p>
             </div>
@@ -181,14 +182,52 @@
         }
 
         function joinWaitlist() {
-            const user = document.getElementById('w-user').value;
-            const email = document.getElementById('w-email').value;
+            const user = document.getElementById('w-user').value.trim();
+            const email = document.getElementById('w-email').value.trim();
             const pass = document.getElementById('w-pass').value;
+            const errorEl = document.getElementById('form-error');
 
-            if(!user || !email || !pass) return alert("All fields required.");
+            // Hide previous error
+            errorEl.style.display = 'none';
 
-            // Save to localStorage (Simulating backend)
+            // Check all fields filled
+            if(!user || !email || !pass) {
+                errorEl.textContent = 'ALL FIELDS ARE REQUIRED.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Username validation (min 3 chars, no spaces)
+            if(user.length < 3) {
+                errorEl.textContent = 'USERNAME MUST BE AT LEAST 3 CHARACTERS.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Email validation - must be a real email format
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if(!emailRegex.test(email)) {
+                errorEl.textContent = 'ENTER A VALID EMAIL (e.g. username@gmail.com)';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Password validation (min 6 chars)
+            if(pass.length < 6) {
+                errorEl.textContent = 'PASSWORD MUST BE AT LEAST 6 CHARACTERS.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Check if email already registered
             const waitlist = JSON.parse(localStorage.getItem('la_waitlist')) || [];
+            if(waitlist.some(w => w.email.toLowerCase() === email.toLowerCase())) {
+                errorEl.textContent = 'THIS EMAIL IS ALREADY ON THE WAITLIST.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Save to waitlist
             waitlist.push({ user, email, date: new Date().toLocaleDateString() });
             localStorage.setItem('la_waitlist', JSON.stringify(waitlist));
 
