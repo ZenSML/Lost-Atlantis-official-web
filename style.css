@@ -365,3 +365,38 @@ body {
         transform: translateY(0);
     }
 }
+
+/* --- COUNTDOWN TIMER --- */
+.countdown-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 40px auto;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.time-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 15px 10px;
+    border-radius: 4px;
+    min-width: 65px;
+}
+.time-box span {
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    color: #fff;
+    margin-bottom: 5px;
+    font-family: 'Playfair Display', serif;
+}
+.time-box small {
+    font-size: 7px;
+    letter-spacing: 3px;
+    color: #666;
+    text-transform: uppercase;
+}
