@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost Atlantis | Support Gateway</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;600;900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* --- TERMS BOX --- */
+        .terms-card {
+            width: 100%;
+            max-width: 500px;
+            background: #050505;
+            border: 1px solid #111;
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .terms-title {
+            font-size: 10px;
+            letter-spacing: 8px;
+            color: #444;
+            margin-bottom: 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .terms-content {
+            font-size: 11px;
+            line-height: 1.8;
+            color: #888;
+            letter-spacing: 1px;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+
+        .terms-content b {
+            color: #fff;
+            display: block;
+            margin-top: 15px;
+            font-weight: 400;
+        }
+
+        .btn-proceed {
+            width: 100%;
+            padding: 18px;
+            background: #fff;
+            color: #000;
+            border: 1px solid #fff;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 5px;
+            font-size: 10px;
+            text-transform: uppercase;
+            transition: all 0.4s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-proceed:hover {
+            background: transparent;
+            color: #fff;
+        }
+
+        .cancel-link {
+            display: block;
+            margin-top: 25px;
+            font-size: 8px;
+            letter-spacing: 3px;
+            color: #222;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .cancel-link:hover { color: #fff; }
+
+        /* --- FORM STATE --- */
+        #contact-form {
+            display: none;
+            text-align: left;
+        }
+        .form-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #111;
+            padding: 15px;
+            color: #fff;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .form-input:focus { border-color: #333; }
+    </style>
+</head>
+<body>
+
+    <div class="terms-card" id="terms-step">
+        <h2 class="terms-title">SUPPORT GATEWAY</h2>
+        
+        <div class="terms-content">
+            <b>01. DATA ENCRYPTION</b>
+            All communication with the Lost Atlantis Command Center is handled through secure external protocols to ensure your transmission remains private.
+            
+            <b>02. RESPONSE PROTOCOL</b>
+            Our support team signals back within 24-48 hours. Please include your Member ID or Order ID for faster verification.
+            
+            <b>03. TERMS OF SERVICE</b>
+            By proceeding, you agree that your data will be used solely for the purpose of resolving your inquiry within the Atlantis ecosystem.
+        </div>
+
+        <button onclick="showForm()" class="btn-proceed">NEXT</button>
+        <a href="javascript:history.back()" class="cancel-link">GO BACK</a>
+    </div>
+
+    <div class="terms-card" id="form-step" style="display: none;">
+        <h2 class="terms-title">SIGNAL TRANSMISSION</h2>
+        
+        <div id="contact-form" style="display: block;">
+            <input type="text" id="name" placeholder="YOUR NAME" class="form-input">
+            <input type="email" id="email" placeholder="EMAIL ADDRESS" class="form-input">
+            <select id="subject" class="form-input" style="appearance: none;">
+                <option value="GENERAL INQUIRY">GENERAL INQUIRY</option>
+                <option value="ORDER STATUS">ORDER STATUS</option>
+                <option value="WAITLIST SIGNAL">WAITLIST SIGNAL</option>
+                <option value="VOID ERROR">SYSTEM ERROR</option>
+            </select>
+            <textarea id="message" placeholder="MESSAGE DEPTHS..." class="form-input" style="height: 120px; resize: none;"></textarea>
+            
+            <button onclick="sendSignal()" class="btn-proceed">SEND SIGNAL</button>
+            <a href="#" onclick="showTerms()" class="cancel-link" style="text-align: center;">BACK TO GATEWAY</a>
+        </div>
+
+        <div id="success-message" style="display: none; text-align: center;">
+            <div class="terms-content" style="text-align: center; margin-bottom: 20px;">
+                <b style="color: #34C759; margin-bottom: 10px;">SIGNAL TRANSMITTED SUCCESSFULLY</b>
+                The Command Center has received your message. We will respond to your email address shortly.
+            </div>
+            <button onclick="window.location.href='shop.html'" class="btn-proceed">RETURN TO SHOP</button>
+        </div>
+    </div>
+
+    <script>
+        function showForm() {
+            document.getElementById('terms-step').style.display = 'none';
+            document.getElementById('form-step').style.display = 'block';
+        }
+
+        function showTerms() {
+            document.getElementById('terms-step').style.display = 'block';
+            document.getElementById('form-step').style.display = 'none';
+        }
+
+        function sendSignal() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const subject = document.getElementById('subject').value;
+            const msg = document.getElementById('message').value.trim();
+
+            if(!name || !email || !msg) {
+                alert("ALL FREQUENCIES MUST BE FILLED.");
+                return;
+            }
+
+            // Save to localStorage instead of mailto:
+            let signals = JSON.parse(localStorage.getItem('la_signals')) || [];
+            signals.push({
+                id: Date.now().toString(),
+                name: name,
+                email: email,
+                subject: subject,
+                message: msg,
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem('la_signals', JSON.stringify(signals));
+
+            // Show success UI
+            document.getElementById('contact-form').style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
