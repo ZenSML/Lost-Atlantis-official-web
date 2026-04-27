@@ -13,6 +13,17 @@
     <canvas id="bg-canvas"></canvas>
 
     <div class="entry-portal" id="main-portal">
+        <!-- COUNTDOWN TIMER -->
+        <div class="countdown-container" style="margin-bottom: 20px;">
+            <div class="time-box"><span id="t-years">0</span><small>YEARS</small></div>
+            <div class="time-box"><span id="t-months">0</span><small>MONTHS</small></div>
+            <div class="time-box"><span id="t-weeks">0</span><small>WEEKS</small></div>
+            <div class="time-box"><span id="t-days">0</span><small>DAYS</small></div>
+            <div class="time-box"><span id="t-hours">0</span><small>HOURS</small></div>
+            <div class="time-box"><span id="t-mins">0</span><small>MINUTES</small></div>
+            <div class="time-box"><span id="t-secs">0</span><small>SECONDS</small></div>
+        </div>
+
         <div class="map-box" style="background: transparent; border: none;">
             <img src="map.png" alt="Map of Lost Atlantis" class="brand-map" style="filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));">
         </div>
@@ -34,17 +45,6 @@
     <div class="modal-overlay" id="waitlist-modal">
         <div class="modal-content">
             <div id="form-container">
-                <!-- COUNTDOWN TIMER -->
-                <div class="countdown-container" style="margin-bottom: 30px;">
-                    <div class="time-box"><span id="t-years">0</span><small>YEARS</small></div>
-                    <div class="time-box"><span id="t-months">0</span><small>MONTHS</small></div>
-                    <div class="time-box"><span id="t-weeks">0</span><small>WEEKS</small></div>
-                    <div class="time-box"><span id="t-days">0</span><small>DAYS</small></div>
-                    <div class="time-box"><span id="t-hours">0</span><small>HOURS</small></div>
-                    <div class="time-box"><span id="t-mins">0</span><small>MINUTES</small></div>
-                    <div class="time-box"><span id="t-secs">0</span><small>SECONDS</small></div>
-                </div>
-
                 <h2 style="font-size: 14px; letter-spacing: 8px; margin-bottom: 40px; font-weight: 300;">THE WAITING LIST</h2>
                 <input type="text" id="w-user" placeholder="USERNAME" class="blueprint-input">
                 <input type="email" id="w-email" placeholder="username@gmail.com" class="blueprint-input">
@@ -258,7 +258,7 @@
         }
 
         // --- COUNTDOWN LOGIC ---
-        const dropDate = new Date("December 31, 2026 00:00:00").getTime();
+        const dropDate = new Date("May 27, 2026 00:00:00").getTime();
 
         setInterval(() => {
             const now = new Date().getTime();
