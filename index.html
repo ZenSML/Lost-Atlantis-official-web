@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body>
+<body style="overflow: hidden;">
 
     <canvas id="bg-canvas"></canvas>
 
@@ -26,7 +26,7 @@
     </div>
 
     <!-- CONTACT LINK -->
-    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=la.lostatlantis@gmail.com" target="_blank" class="contact-link">
+    <a href="contact.html" class="contact-link">
         <span style="font-size: 16px; margin-right: 8px;">ⓘ</span> CONTACT
     </a>
 
@@ -34,6 +34,17 @@
     <div class="modal-overlay" id="waitlist-modal">
         <div class="modal-content">
             <div id="form-container">
+                <!-- COUNTDOWN TIMER -->
+                <div class="countdown-container" style="margin-bottom: 30px;">
+                    <div class="time-box"><span id="t-years">0</span><small>YEARS</small></div>
+                    <div class="time-box"><span id="t-months">0</span><small>MONTHS</small></div>
+                    <div class="time-box"><span id="t-weeks">0</span><small>WEEKS</small></div>
+                    <div class="time-box"><span id="t-days">0</span><small>DAYS</small></div>
+                    <div class="time-box"><span id="t-hours">0</span><small>HOURS</small></div>
+                    <div class="time-box"><span id="t-mins">0</span><small>MINUTES</small></div>
+                    <div class="time-box"><span id="t-secs">0</span><small>SECONDS</small></div>
+                </div>
+
                 <h2 style="font-size: 14px; letter-spacing: 8px; margin-bottom: 40px; font-weight: 300;">THE WAITING LIST</h2>
                 <input type="text" id="w-user" placeholder="USERNAME" class="blueprint-input">
                 <input type="email" id="w-email" placeholder="username@gmail.com" class="blueprint-input">
@@ -46,11 +57,21 @@
                 <h2 style="font-size: 24px; letter-spacing: 10px; margin-bottom: 20px;">TRANSMISSION SECURED</h2>
                 <p style="font-size: 10px; letter-spacing: 4px; color: #666; line-height: 2;">WE WILL SIGNAL YOU ONCE THE GATES ARE LIVE.</p>
                 <button onclick="window.location.reload()" class="btn-enter" style="margin-top: 40px; width: auto; padding: 15px 40px;">CLOSE</button>
+                <p onclick="window.location.href='contact.html'" style="font-size: 8px; letter-spacing: 5px; color: #222; margin-top: 25px; cursor: pointer; text-transform: uppercase;"><span style="margin-right: 5px;">ⓘ</span> Contact Support</p>
             </div>
         </div>
     </div>
 
     <script>
+        // MASTER REDIRECT: If site is LIVE, nobody sees the waitlist except the admin
+        (function() {
+            const status = localStorage.getItem('la_site_status') || 'MAINTENANCE';
+            const role = localStorage.getItem('la_role');
+            if (status === 'LIVE' && role !== 'admin') {
+                window.location.href = 'login.html';
+            }
+        })();
+
         let scene, camera, renderer, starGroup;
 
         function createIconTexture(text, isStickman = false) {
@@ -236,7 +257,36 @@
             document.getElementById('success-message').style.display = 'block';
         }
 
+        // --- COUNTDOWN LOGIC ---
+        const dropDate = new Date("December 31, 2026 00:00:00").getTime();
+
+        setInterval(() => {
+            const now = new Date().getTime();
+            const distance = dropDate - now;
+
+            if (distance < 0) return;
+
+            const years = Math.floor(distance / (1000 * 60 * 60 * 24 * 365.25));
+            const months = Math.floor((distance % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
+            const weeks = Math.floor((distance % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24 * 7));
+            const days = Math.floor((distance % (1000 * 60 * 60 * 24 * 7)) / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            if(document.getElementById("t-years")) {
+                document.getElementById("t-years").innerText = years;
+                document.getElementById("t-months").innerText = months;
+                document.getElementById("t-weeks").innerText = weeks;
+                document.getElementById("t-days").innerText = days;
+                document.getElementById("t-hours").innerText = hours;
+                document.getElementById("t-mins").innerText = minutes;
+                document.getElementById("t-secs").innerText = seconds;
+            }
+        }, 1000);
+
         init();
     </script>
+
 </body>
 </html>
