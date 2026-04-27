@@ -3,17 +3,49 @@
     --bg-color: #050505;
     --card-bg: #0d0d0d;
     --text-color: #ffffff;
-    --accent-color: #ffffff; /* NO YELLOW - Pure White */
+    --accent-color: #ffffff;
+    /* NO YELLOW - Pure White */
     --muted-color: #444;
     --border-color: #222;
 }
 
-body { 
-    margin: 0; 
-    font-family: 'Inter', sans-serif; 
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 40px;
+}
+
+.brand-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 60px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+}
+
+.admin-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.stat-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 25px;
 }
 
 /* --- THREE.JS CANVAS BACKGROUND --- */
@@ -43,11 +75,86 @@ body {
     gap: 30px;
 }
 
+/* --- TIME SELECTOR --- */
+.time-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    justify-content: flex-end;
+}
+
+.time-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--muted-color);
+    padding: 6px 15px;
+    font-size: 8px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+}
+
+.time-btn:hover,
+.time-btn.active {
+    border-color: var(--text-color);
+    color: var(--text-color);
+}
+
+/* --- STATUS DOTS --- */
+.status-dots-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+    opacity: 0.3;
+}
+
+.dot:hover {
+    opacity: 0.8;
+    transform: scale(1.2);
+}
+
+.dot.active {
+    opacity: 1;
+    border-color: #fff;
+    box-shadow: 0 0 10px currentColor;
+}
+
+.dot.orange {
+    background: #FF9500;
+    color: #FF9500;
+}
+
+.dot.blue {
+    background: #5AC8FA;
+    color: #5AC8FA;
+}
+
+.dot.purple {
+    background: #AF52DE;
+    color: #AF52DE;
+}
+
+.dot.green {
+    background: #34C759;
+    color: #34C759;
+}
+
 /* --- THE CLASSIC TREASURE MAP --- */
 .map-box {
     width: 100%;
     height: 350px;
-    background: transparent; /* Remove solid black bars */
+    background: transparent;
+    /* Remove solid black bars */
     position: relative;
     overflow: hidden;
     display: flex;
@@ -58,7 +165,8 @@ body {
 .brand-map {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Ensure full map is visible */
+    object-fit: contain;
+    /* Ensure full map is visible */
     opacity: 0.9;
     filter: grayscale(1) contrast(1.1);
 }
@@ -100,7 +208,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.95);
+    background: rgba(0, 0, 0, 0.95);
     z-index: 100;
     display: none;
     justify-content: center;
@@ -136,6 +244,24 @@ body {
     color: #fff;
 }
 
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}
+
 .blueprint-input {
     width: 100%;
     padding: 15px;
@@ -153,12 +279,89 @@ body {
     border-color: #666;
 }
 
+/* --- SIDEBAR --- */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 200;
+    display: none;
+    backdrop-filter: blur(5px);
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -400px;
+    /* Hidden by default on the LEFT */
+    width: 400px;
+    height: 100%;
+    background: #000;
+    border-right: 1px solid #111;
+    z-index: 201;
+    padding: 80px 60px;
+    transition: left 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar-link {
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 8px;
+    font-weight: 300;
+    /* Not bold */
+    text-transform: uppercase;
+    transition: opacity 0.3s;
+    margin-bottom: 30px;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar-link-small {
+    color: #444;
+    text-decoration: none;
+    font-size: 10px;
+    letter-spacing: 4px;
+    font-weight: 300;
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+.sidebar-link-small:hover {
+    color: #fff;
+}
+
+.sidebar-link:hover {
+    opacity: 0.5;
+}
+
 .success-message {
     display: none;
     animation: fadeIn 0.5s ease-out;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
