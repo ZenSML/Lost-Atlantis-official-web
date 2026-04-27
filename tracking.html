@@ -3,19 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lost Atlantis | Track Package</title>
+    <title>Lost Atlantis | Tracking Radar</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;600;900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .tracking-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .radar-box {
+            background: #050505;
+            border: 1px solid #111;
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .radar-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            animation: scanLine 3s linear infinite;
+            opacity: 0.1;
+        }
+
+        @keyframes scanLine {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .status-display {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #111;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .status-header {
+            font-size: 8px;
+            letter-spacing: 5px;
+            color: #444;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .status-value {
+            font-size: 18px;
+            letter-spacing: 3px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 30px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 1px;
+            background: #111;
+            position: relative;
+            margin: 40px 0;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 1.5s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        .order-details {
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: #333;
+            line-height: 1.8;
+        }
+
+        #error-msg {
+            font-size: 9px;
+            color: #ff3b30;
+            margin-top: 20px;
+            letter-spacing: 2px;
+            display: none;
+        }
+
+        .loading-dots:after {
+            content: ' .';
+            animation: dots 1s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { color: rgba(0,0,0,0); text-shadow: .5em 0 0 rgba(0,0,0,0), 1em 0 0 rgba(0,0,0,0); }
+            40% { color: #444; text-shadow: .5em 0 0 rgba(0,0,0,0), 1em 0 0 rgba(0,0,0,0); }
+            60% { text-shadow: .5em 0 0 #444, 1em 0 0 rgba(0,0,0,0); }
+            80%, 100% { text-shadow: .5em 0 0 #444, 1em 0 0 #444; }
+        }
     </style>
 </head>
 <body>
-    <div class="admin-card" style="width: 320px; text-align: center;">
-        <h1 class="yellow-text" style="font-size: 14px; margin-bottom: 30px;">TRACKING RADAR</h1>
-        <input type="text" placeholder="#LA-0000" class="blueprint-input" style="text-align: center;">
-        <button class="btn-lock" style="width: 100%;">SEARCH DEPTHS</button>
-        <p style="font-size: 9px; color: #444; margin-top: 20px; letter-spacing: 2px;">SCANNING GLOBAL COORDS...</p>
+
+    <div class="tracking-container">
+        <div class="radar-box">
+            <p style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 14px; color: #444; margin-bottom: 10px;">Lost Atlantis</p>
+            <h1 style="font-size: 11px; letter-spacing: 10px; font-weight: 300; margin-bottom: 40px; color: #fff;">TRACKING RADAR</h1>
+            
+            <div style="position: relative;">
+                <input type="text" id="trackInput" placeholder="#LA-0000" class="blueprint-input" style="text-align: center; margin-bottom: 15px; border-color: #111;">
+                <button onclick="searchOrder()" id="searchBtn" class="btn-enter" style="padding: 15px; font-size: 9px;">SEARCH DEPTHS</button>
+            </div>
+
+            <p id="error-msg">SIGNAL NOT FOUND. VERIFY COORDINATES.</p>
+
+            <div class="status-display" id="statusDisplay">
+                <p class="status-header">CURRENT SIGNAL STATUS</p>
+                <h2 class="status-value" id="statusValue">PENDING</h2>
+                
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <div class="order-details" id="orderDetails">
+                    <!-- Details here -->
+                </div>
+                
+                <p style="font-size: 7px; letter-spacing: 4px; color: #222; margin-top: 40px;" class="loading-dots">SCANNING GLOBAL COORDS</p>
+            </div>
+        </div>
+
+        <a href="shop.html" style="position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); text-decoration: none; font-size: 9px; letter-spacing: 5px; color: #222;">RETURN TO SURFACE</a>
     </div>
+
+    <script>
+        function searchOrder() {
+            const input = document.getElementById('trackInput').value.trim().toUpperCase();
+            const display = document.getElementById('statusDisplay');
+            const error = document.getElementById('error-msg');
+            const btn = document.getElementById('searchBtn');
+
+            error.style.display = 'none';
+            display.style.display = 'none';
+
+            if(!input) return;
+
+            btn.innerText = "SEARCHING...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                const orders = JSON.parse(localStorage.getItem('la_orders')) || [];
+                // Allow both #LA-XXXX and LA-XXXX formats
+                const cleanInput = input.startsWith('#') ? input.substring(1) : input;
+                const order = orders.find(o => o.id === cleanInput || o.id === input);
+
+                if(order) {
+                    document.getElementById('statusValue').innerText = order.status;
+                    document.getElementById('orderDetails').innerHTML = `
+                        ORDER: ${order.id}<br>
+                        SIGNAL DATE: ${new Date(order.date).toLocaleDateString()}<br>
+                        ARTIFACTS: ${order.items.join(', ')}
+                    `;
+
+                    // Progress mapping
+                    let progress = 10;
+                    if(order.status === 'SIGNAL RECEIVED') progress = 25;
+                    if(order.status === 'FORGING ARTIFACT') progress = 50;
+                    if(order.status === 'VOID READY') progress = 75;
+                    if(order.status === 'DEPOSITED') progress = 100;
+
+                    display.style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('progressFill').style.width = progress + '%';
+                    }, 100);
+
+                } else {
+                    error.style.display = 'block';
+                }
+
+                btn.innerText = "SEARCH DEPTHS";
+                btn.disabled = false;
+            }, 1200);
+        }
+    </script>
 </body>
 </html>
