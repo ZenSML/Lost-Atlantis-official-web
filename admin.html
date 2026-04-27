@@ -5,7 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost Atlantis | Command Center</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .scroll-list {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding-right: 10px;
+        }
+        .scroll-list::-webkit-scrollbar { width: 3px; }
+        .scroll-list::-webkit-scrollbar-thumb { background: #1a1a1a; }
+        
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #111;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+        .list-item:last-child { border-bottom: none; }
+        
+        .item-actions {
+            display: flex;
+            gap: 15px;
+        }
+        .icon-btn {
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.3s;
+        }
+        .icon-btn:hover { opacity: 0.5; }
+        .edit-icon { color: #fff; }
+        .delete-icon { color: #ff3b30; }
+
+        .stat-box.visitors { border-left: 2px solid #5AC8FA; }
+        .stat-box.earnings { border-left: 2px solid #34C759; }
+        .stat-box.sold { border-left: 2px solid #AF52DE; }
+        .stat-box.members { border-left: 2px solid #FF9500; }
+        
+        .time-label {
+            font-size: 7px;
+            letter-spacing: 2px;
+            color: #333;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .size-check {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .size-check label {
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: #555;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
 </head>
 <body class="admin-body">
     
@@ -14,58 +77,152 @@
             <h1 style="font-size: 24px; margin: 0; font-weight: 600; letter-spacing: 5px;">COMMAND CENTER</h1>
             <div style="display:flex; gap:15px;">
                 <button onclick="window.location.href='shop.html'" class="btn-lock">PREVIEW SHOP</button>
-                <button onclick="toggleLaunch()" id="st" class="btn-lock" style="border-color: #34C759; color: #34C759;"></button>
+                <button onclick="toggleLaunch()" id="st" class="btn-lock"></button>
                 <button onclick="logout()" class="btn-lock" style="opacity: 0.5;">LOGOUT</button>
             </div>
         </header>
 
+        <!-- TIME SELECTOR -->
+        <div class="time-selector">
+            <button onclick="setTimeRange('day')" id="range-day" class="time-btn">DAY</button>
+            <button onclick="setTimeRange('week')" id="range-week" class="time-btn">WEEK</button>
+            <button onclick="setTimeRange('month')" id="range-month" class="time-btn active">MONTH</button>
+            <button onclick="setTimeRange('year')" id="range-year" class="time-btn">YEAR</button>
+        </div>
+
+        <!-- STATS -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
-            <div class="stat-box">
+            <div class="stat-box visitors">
                 <p style="font-size:10px; color:#555; letter-spacing:3px;">VISITORS</p>
                 <h2 id="stat-visitors" style="margin: 10px 0; font-weight: 300;">1,284</h2>
+                <span class="time-label">LIVE TRACKING (24H)</span>
             </div>
-            <div class="stat-box">
+            <div class="stat-box earnings">
                 <p style="font-size:10px; color:#555; letter-spacing:3px;">EARNINGS</p>
                 <h2 id="stat-earnings" style="margin: 10px 0; color: #fff;">AED 0.00</h2>
+                <span class="time-label" id="label-earnings">THIS MONTH</span>
             </div>
-            <div class="stat-box">
+            <div class="stat-box sold">
                 <p style="font-size:10px; color:#555; letter-spacing:3px;">SOLD</p>
                 <h2 id="stat-sold" style="margin: 10px 0; font-weight: 300;">0</h2>
+                <span class="time-label" id="label-sold">TOTAL ORDERS</span>
             </div>
-            <div class="stat-box">
-                <p style="font-size:10px; color:#555; letter-spacing:3px;">WAITLIST</p>
+            <div class="stat-box members">
+                <p style="font-size:10px; color:#555; letter-spacing:3px;">MEMBERS</p>
                 <h2 id="stat-waitlist" style="margin: 10px 0; color: #fff;">0</h2>
+                <span class="time-label" id="label-members">ACTIVE DATABASE</span>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px;">
+            <!-- PRODUCT MANAGER -->
             <div class="admin-card">
-                <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">PUBLISH DESIGN</h3>
-                <input type="text" id="pName" placeholder="ITEM NAME" class="blueprint-input">
-                <input type="number" id="pPrice" placeholder="PRICE (AED)" class="blueprint-input">
-                <select id="pCat" class="blueprint-input">
-                    <option value="streetwear">STREETWEAR</option>
-                    <option value="accessories">ACCESSORIES</option>
-                </select>
-                <button onclick="publishItem()" class="btn-lock" style="width: 100%; margin-top: 10px;">ENCRYPT & PUBLISH</button>
+                <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">PRODUCT MANAGER</h3>
+                <div style="margin-bottom: 30px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="pName" placeholder="PRODUCT NAME" class="blueprint-input" style="margin-bottom:0;">
+                        <input type="number" id="pPrice" placeholder="PRICE" class="blueprint-input" style="margin-bottom:0; width: 100px;">
+                        <input type="text" id="pImg" placeholder="IMAGE URL" class="blueprint-input" style="margin-bottom:0;">
+                        <input type="number" id="pStock" placeholder="STOCK" class="blueprint-input" style="margin-bottom:0; width: 100px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="pCat" class="blueprint-input" style="margin-bottom:0; width: 200px;">
+                            <!-- Categories dynamically loaded -->
+                        </select>
+                        <div class="size-check" id="pSizes">
+                            <label><input type="checkbox" value="S"> S</label>
+                            <label><input type="checkbox" value="M"> M</label>
+                            <label><input type="checkbox" value="L"> L</label>
+                            <label><input type="checkbox" value="XL"> XL</label>
+                            <label><input type="checkbox" value="OS"> OS</label>
+                        </div>
+                        <button onclick="publishItem()" class="btn-lock" style="padding: 0 20px; margin-left: auto;">PUBLISH</button>
+                    </div>
+                </div>
+                
+                <div class="scroll-list" id="productList">
+                    <!-- Products listed here -->
+                </div>
             </div>
 
-            <div class="admin-card">
-                <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">WAITLIST SIGNUPS</h3>
-                <div id="waitlistLog" style="max-height: 250px; overflow-y: auto; font-size: 12px;">
-                    <p style="color: #444; letter-spacing: 2px;">SCANNING FOR SIGNALS...</p>
+            <!-- ANNOUNCEMENTS, CATEGORY & MEMBER MANAGER -->
+            <div style="display: flex; flex-direction: column; gap: 30px;">
+                <div class="admin-card">
+                    <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">ANNOUNCEMENTS / ADS</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="text" id="adText" placeholder="ANNOUNCEMENT TEXT" class="blueprint-input" style="margin-bottom: 0;">
+                        <button onclick="saveAd()" class="btn-lock" style="padding: 0 20px;">SET</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="adActive" onchange="saveAd()">
+                        <label for="adActive" style="font-size: 9px; letter-spacing: 2px; color: #555;">DISPLAY ON SHOP</label>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">CATEGORIES</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newCat" placeholder="NEW" class="blueprint-input" style="margin-bottom: 0;">
+                        <button onclick="addCategory()" class="btn-lock" style="padding: 0 20px;">+</button>
+                    </div>
+                    <div class="scroll-list" id="catList" style="max-height: 120px;">
+                        <!-- Categories listed here -->
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 25px;">
+                        <h3 style="font-size: 14px; letter-spacing: 5px;">MEMBERS</h3>
+                        <p onclick="clearWaitlist()" style="font-size: 8px; color: #ff3b30; cursor: pointer; letter-spacing: 2px;">RESET</p>
+                    </div>
+                    <div id="waitlistLog" class="scroll-list" style="max-height: 120px;">
+                        <!-- Members here -->
+                    </div>
+                    <button onclick="notifyWaitlist()" class="btn-lock" style="width: 100%; margin-top: 15px; border-color: #34C759; color: #34C759;">NOTIFY LIVE</button>
+                </div>
+
+                <!-- ORDER MANAGEMENT -->
+                <div class="admin-card">
+                    <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">ORDERS</h3>
+                    <div id="orderList" class="scroll-list" style="max-height: 300px;">
+                        <!-- Orders listed here -->
+                    </div>
+                </div>
+
+                <!-- SUPPORT SIGNALS -->
+                <div class="admin-card">
+                    <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">SUPPORT SIGNALS</h3>
+                    <div id="signalList" class="scroll-list" style="max-height: 250px;">
+                        <!-- Signals listed here -->
+                    </div>
+                </div>
+
+                <!-- SUPPLIER VAULT -->
+                <div class="admin-card">
+                    <h3 style="font-size: 14px; margin-bottom: 25px; letter-spacing: 5px;">SUPPLIER VAULT</h3>
+                    <div style="margin-bottom: 20px;">
+                        <input type="text" id="sName" placeholder="SUPPLIER NAME (E.G. SHOP B-12)" class="blueprint-input" style="margin-bottom: 10px;">
+                        <input type="text" id="sContact" placeholder="WHATSAPP / PHONE" class="blueprint-input" style="margin-bottom: 10px;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="text" id="sMaterial" placeholder="MATERIAL (E.G. 300GSM)" class="blueprint-input" style="margin-bottom: 0;">
+                            <input type="text" id="sPrice" placeholder="PRICE" class="blueprint-input" style="margin-bottom: 0; width: 100px;">
+                        </div>
+                        <button onclick="addSupplier()" class="btn-lock" style="width: 100%;">ADD TO VAULT</button>
+                    </div>
+                    <div id="supplierList" class="scroll-list" style="max-height: 250px;">
+                        <!-- Suppliers listed here -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Security Check
-        if(localStorage.getItem('la_role') !== 'admin') window.location.href = 'index.html';
+        if(localStorage.getItem('la_role') !== 'admin') window.location.href = 'login.html';
 
         function logout() {
             localStorage.removeItem('la_role');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
         }
 
         function toggleLaunch() {
@@ -74,19 +231,191 @@
             render();
         }
 
+        function addCategory() {
+            const cat = document.getElementById('newCat').value.trim().toUpperCase();
+            if(!cat) return;
+            let categories = JSON.parse(localStorage.getItem('la_categories')) || ["STREETWEAR", "ACCESSORIES"];
+            if(!categories.includes(cat)) {
+                categories.push(cat);
+                localStorage.setItem('la_categories', JSON.stringify(categories));
+                document.getElementById('newCat').value = '';
+                render();
+            }
+        }
+
+        function editCategory(oldCat) {
+            const newCat = prompt("EDIT CATEGORY NAME:", oldCat);
+            if(newCat && newCat.trim()) {
+                const updatedCat = newCat.trim().toUpperCase();
+                
+                // Ensure we have a categories list
+                let categories = JSON.parse(localStorage.getItem('la_categories')) || ["STREETWEAR", "ACCESSORIES"];
+                const index = categories.indexOf(oldCat);
+                
+                if(index !== -1) {
+                    categories[index] = updatedCat;
+                    localStorage.setItem('la_categories', JSON.stringify(categories));
+
+                    // Propagate change to products
+                    let items = JSON.parse(localStorage.getItem('la_products')) || [];
+                    items.forEach(p => {
+                        if(p.category && p.category.toLowerCase() === oldCat.toLowerCase()) {
+                            p.category = updatedCat.toLowerCase();
+                        }
+                    });
+                    localStorage.setItem('la_products', JSON.stringify(items));
+                    
+                    render();
+                } else {
+                    alert("CATEGORY NOT FOUND IN DATABASE.");
+                }
+            }
+        }
+
+        function deleteCategory(cat) {
+            if(confirm(`ARE YOU SURE YOU WANT TO DELETE THE CATEGORY: "${cat}"?`)) {
+                let categories = JSON.parse(localStorage.getItem('la_categories')) || ["STREETWEAR", "ACCESSORIES"];
+                categories = categories.filter(c => c !== cat);
+                localStorage.setItem('la_categories', JSON.stringify(categories));
+                render();
+            }
+        }
+
+        // --- PRODUCT LOGIC ---
         function publishItem() {
-            const name = document.getElementById('pName').value;
+            const name = document.getElementById('pName').value.trim();
             const price = document.getElementById('pPrice').value;
+            const img = document.getElementById('pImg').value.trim();
+            const stock = document.getElementById('pStock').value;
             const cat = document.getElementById('pCat').value;
             
-            if(!name || !price) return alert("INCOMPLETE DATA.");
+            const sizes = [];
+            document.querySelectorAll('#pSizes input:checked').forEach(cb => sizes.push(cb.value));
+            
+            if(!name || !price) return;
             
             let items = JSON.parse(localStorage.getItem('la_products')) || [];
-            items.push({ name, price, category: cat, id: Date.now() });
+            items.push({ 
+                name, 
+                price, 
+                img,
+                stock: stock || 0,
+                sizes,
+                category: cat, 
+                id: Date.now() 
+            });
             localStorage.setItem('la_products', JSON.stringify(items));
             
-            alert("ITEM PUBLISHED TO THE DEPTHS.");
-            location.reload();
+            // Reset
+            document.getElementById('pName').value = '';
+            document.getElementById('pPrice').value = '';
+            document.getElementById('pImg').value = '';
+            document.getElementById('pStock').value = '';
+            document.querySelectorAll('#pSizes input').forEach(cb => cb.checked = false);
+            render();
+        }
+
+        function editProduct(id) {
+            let items = JSON.parse(localStorage.getItem('la_products')) || [];
+            const item = items.find(p => p.id === id);
+            if(!item) return;
+
+            const newName = prompt("EDIT NAME:", item.name);
+            const newPrice = prompt("EDIT PRICE:", item.price);
+            const newStock = prompt("EDIT STOCK:", item.stock || 0);
+            const newImg = prompt("EDIT IMAGE URL:", item.img || '');
+            
+            if(newName !== null && newPrice !== null && newStock !== null && newImg !== null) {
+                item.name = newName;
+                item.price = newPrice;
+                item.stock = newStock;
+                item.img = newImg;
+                localStorage.setItem('la_products', JSON.stringify(items));
+                render();
+            }
+        }
+
+        function deleteProduct(id) {
+            let items = JSON.parse(localStorage.getItem('la_products')) || [];
+            const item = items.find(p => p.id === id);
+            if(!item) return;
+
+            if(confirm(`ARE YOU SURE YOU WANT TO DELETE THIS PRODUCT: "${item.name.toUpperCase()}"?`)) {
+                items = items.filter(p => p.id !== id);
+                localStorage.setItem('la_products', JSON.stringify(items));
+                render();
+            }
+        }
+
+        function saveAd() {
+            const text = document.getElementById('adText').value.trim();
+            const active = document.getElementById('adActive').checked;
+            localStorage.setItem('la_ad', JSON.stringify({ text, active }));
+        }
+
+        function clearWaitlist() {
+            if(confirm("THIS WILL DELETE ALL REGISTERED USERS. ARE YOU SURE?")) {
+                localStorage.setItem('la_waitlist', JSON.stringify([]));
+                render();
+            }
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            let orders = JSON.parse(localStorage.getItem('la_orders')) || [];
+            const order = orders.find(o => o.id === orderId);
+            if(order) {
+                order.status = newStatus;
+                localStorage.setItem('la_orders', JSON.stringify(orders));
+                render();
+            }
+        }
+
+        function deleteOrder(orderId) {
+            if(confirm(`DELETE ORDER ${orderId}?`)) {
+                let orders = JSON.parse(localStorage.getItem('la_orders')) || [];
+                orders = orders.filter(o => o.id !== orderId);
+                localStorage.setItem('la_orders', JSON.stringify(orders));
+                render();
+            }
+        }
+
+        // --- SUPPLIER LOGIC ---
+        function addSupplier() {
+            const name = document.getElementById('sName').value.trim();
+            const contact = document.getElementById('sContact').value.trim();
+            const material = document.getElementById('sMaterial').value.trim();
+            const price = document.getElementById('sPrice').value.trim();
+
+            if(!name || !contact) return;
+
+            let suppliers = JSON.parse(localStorage.getItem('la_suppliers')) || [];
+            suppliers.push({ name, contact, material, price, id: Date.now() });
+            localStorage.setItem('la_suppliers', JSON.stringify(suppliers));
+
+            // Reset
+            document.getElementById('sName').value = '';
+            document.getElementById('sContact').value = '';
+            document.getElementById('sMaterial').value = '';
+            document.getElementById('sPrice').value = '';
+            render();
+        }
+
+        function deleteSupplier(id) {
+            if(confirm("REMOVE THIS SUPPLIER FROM THE VAULT?")) {
+                let suppliers = JSON.parse(localStorage.getItem('la_suppliers')) || [];
+                suppliers = suppliers.filter(s => s.id !== id);
+                localStorage.setItem('la_suppliers', JSON.stringify(suppliers));
+                render();
+            }
+        }
+
+        let currentTimeRange = 'month';
+
+        function setTimeRange(range) {
+            currentTimeRange = range;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('range-' + range).classList.add('active');
+            render();
         }
 
         function render() {
@@ -96,13 +425,162 @@
             btn.style.borderColor = s === 'LIVE' ? '#34C759' : '#ff3b30';
             btn.style.color = s === 'LIVE' ? '#34C759' : '#ff3b30';
             
+            // --- FILTERING DATA BY TIME ---
+            const now = new Date();
+            const filterByTime = (itemDate) => {
+                const date = new Date(itemDate);
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if(currentTimeRange === 'day') return diffDays <= 1;
+                if(currentTimeRange === 'week') return diffDays <= 7;
+                if(currentTimeRange === 'month') return diffDays <= 30;
+                if(currentTimeRange === 'year') return diffDays <= 365;
+                return true;
+            };
+
+            // WAITLIST STATS
+            const waitlist = JSON.parse(localStorage.getItem('la_waitlist')) || [];
+            const filteredWaitlist = waitlist.filter(w => filterByTime(w.date));
+            document.getElementById('stat-waitlist').innerText = filteredWaitlist.length;
+            
+            // ORDER STATS
+            const orders = JSON.parse(localStorage.getItem('la_orders')) || [];
+            const filteredOrders = orders.filter(o => filterByTime(o.date));
+            const totalEarnings = filteredOrders.reduce((sum, o) => sum + o.total, 0);
+            const totalSold = filteredOrders.length;
+            
+            document.getElementById('stat-earnings').innerText = `AED ${totalEarnings.toFixed(2)}`;
+            document.getElementById('stat-sold').innerText = totalSold;
+
+            // Update Labels
+            const labelMap = { 'day': 'TODAY', 'week': 'THIS WEEK', 'month': 'THIS MONTH', 'year': 'THIS YEAR' };
+            const currentLabel = labelMap[currentTimeRange] || 'THIS MONTH';
+            document.getElementById('label-earnings').innerText = currentLabel;
+            document.getElementById('label-members').innerText = currentLabel;
+            document.getElementById('label-sold').innerText = currentLabel === 'TODAY' ? 'TODAY' : currentLabel;
+
+            // RENDER ORDERS
+            document.getElementById('orderList').innerHTML = orders.slice().reverse().map(o => `
+                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <b style="color:#fff; font-size:10px;">${o.id}</b>
+                        <span onclick="deleteOrder('${o.id}')" class="icon-btn delete-icon">✕</span>
+                    </div>
+                    <div style="font-size: 8px; color: #555;">${o.items.join(', ')}</div>
+                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                        <span style="color:#444; font-size:9px; letter-spacing:1px;" id="status-label-${o.id}">${o.status}</span>
+                        <div class="status-dots-container">
+                            <div title="SIGNAL RECEIVED" onclick="updateOrderStatus('${o.id}', 'SIGNAL RECEIVED')" class="dot orange ${o.status === 'SIGNAL RECEIVED' || o.status === 'PREPARING SIGNAL' ? 'active' : ''}"></div>
+                            <div title="FORGING ARTIFACT" onclick="updateOrderStatus('${o.id}', 'FORGING ARTIFACT')" class="dot blue ${o.status === 'FORGING ARTIFACT' ? 'active' : ''}"></div>
+                            <div title="VOID READY" onclick="updateOrderStatus('${o.id}', 'VOID READY')" class="dot purple ${o.status === 'VOID READY' || o.status === 'VOID TRANSIT' ? 'active' : ''}"></div>
+                            <div title="DEPOSITED" onclick="updateOrderStatus('${o.id}', 'DEPOSITED')" class="dot green ${o.status === 'DEPOSITED' ? 'active' : ''}"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('') || '<p style="color: #222; font-size: 10px; padding: 20px 0;">NO ORDERS FOUND</p>';
+
+            document.getElementById('waitlistLog').innerHTML = waitlist.slice().reverse().map(u => 
+                `<div class="list-item">
+                    <span><b style="color:#fff;">${u.user}</b> <span style="opacity:0.4; font-size:9px;">${u.email}</span></span>
+                    <span style="color:#333; font-size:8px;">${u.date}</span>
+                </div>`).join('') || '<p style="color: #222; font-size: 10px; padding: 20px 0;">NO MEMBERS</p>';
+
+            let categories = JSON.parse(localStorage.getItem('la_categories')) || ["STREETWEAR", "ACCESSORIES"];
+            if(!localStorage.getItem('la_categories')) localStorage.setItem('la_categories', JSON.stringify(categories));
+
+            document.getElementById('pCat').innerHTML = categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join('');
+            document.getElementById('catList').innerHTML = categories.map(c => 
+                `<div class="list-item">
+                    <span style="color:#fff; font-size:10px; letter-spacing:2px;">${c}</span>
+                    <div class="item-actions">
+                        <span onclick="editCategory('${c}')" class="icon-btn edit-icon">✎</span>
+                        <span onclick="deleteCategory('${c}')" class="icon-btn delete-icon">✕</span>
+                    </div>
+                </div>`).join('') || '<p style="color: #222; font-size: 10px; padding: 20px 0;">NO CATEGORIES</p>';
+
+            let products = JSON.parse(localStorage.getItem('la_products')) || [];
+            document.getElementById('productList').innerHTML = products.slice().reverse().map(p => 
+                `<div class="list-item">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                        <div style="width: 25px; height: 25px; background: #111; border: 1px solid #222; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            ${p.img ? `<img src="${p.img}" style="width: 100%; height: 100%; object-fit: cover;">` : `<span style="font-size: 5px; color: #333;">X</span>`}
+                        </div>
+                        <div>
+                            <b style="color:#fff; font-size: 10px;">${p.name.toUpperCase()}</b> 
+                            <div style="opacity:0.4; margin-top:4px; font-size:8px;">
+                                ${p.category.toUpperCase()} — AED ${p.price} — STOCK: ${p.stock || 0}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <span onclick="editProduct(${p.id})" class="icon-btn edit-icon">✎</span>
+                        <span onclick="deleteProduct(${p.id})" class="icon-btn delete-icon">✕</span>
+                    </div>
+                </div>`).join('') || '<p style="color: #222; font-size: 10px; padding: 40px 0; text-align:center;">NO PRODUCTS PUBLISHED</p>';
+
+            const adData = JSON.parse(localStorage.getItem('la_ad')) || { text: '', active: false };
+            document.getElementById('adText').value = adData.text;
+            document.getElementById('adActive').checked = adData.active;
+            // RENDER SUPPLIERS
+            const suppliers = JSON.parse(localStorage.getItem('la_suppliers')) || [];
+            document.getElementById('supplierList').innerHTML = suppliers.slice().reverse().map(s => `
+                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <b style="color:#fff; font-size:10px; letter-spacing:2px;">${s.name.toUpperCase()}</b>
+                        <span onclick="deleteSupplier(${s.id})" class="icon-btn delete-icon">✕</span>
+                    </div>
+                    <div style="font-size: 8px; color: #555; display: flex; justify-content: space-between; width: 100%;">
+                        <span>${s.material.toUpperCase()} — ${s.price}</span>
+                        <a href="https://wa.me/${s.contact.replace(/\D/g,'')}" target="_blank" style="color: #34C759; text-decoration: none;">WHATSAPP ↗</a>
+                    </div>
+                </div>
+            `).join('') || '<p style="color: #222; font-size: 10px; padding: 20px 0;">NO SUPPLIERS IN VAULT</p>';
+
+            // RENDER SIGNALS
+            const signals = JSON.parse(localStorage.getItem('la_signals')) || [];
+            document.getElementById('signalList').innerHTML = signals.slice().reverse().map(s => `
+                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 8px; border: 1px solid #111; padding: 15px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <div>
+                            <b style="color:#fff; font-size:10px;">${s.name.toUpperCase()}</b>
+                            <span style="font-size: 8px; color: #555; margin-left: 8px;">${s.date}</span>
+                        </div>
+                        <span onclick="deleteSignal('${s.id}')" class="icon-btn delete-icon">✕</span>
+                    </div>
+                    <div style="font-size: 9px; color: #888; width: 100%;">
+                        <span style="color: #fff; letter-spacing: 1px;">${s.subject}</span><br>
+                        ${s.email}
+                    </div>
+                    <div style="font-size: 10px; color: #aaa; margin-top: 5px; line-height: 1.5;">
+                        ${s.message}
+                    </div>
+                    <button onclick="replySignal('${s.email}', '${s.subject}', '${encodeURIComponent(s.message)}')" class="btn-lock" style="width: 100%; margin-top: 10px; padding: 10px;">REPLY VIA EMAIL</button>
+                </div>
+            `).join('') || '<p style="color: #222; font-size: 10px; padding: 20px 0;">NO SIGNALS DETECTED</p>';
+        }
+
+        function replySignal(email, subject, messageStr) {
+            const decodedMsg = decodeURIComponent(messageStr);
+            const mailSubject = encodeURIComponent(`Re: LOST ATLANTIS | ${subject}`);
+            const mailBody = encodeURIComponent(`\n\n---\nOn your signal regarding [${subject}]:\n"${decodedMsg}"`);
+            window.location.href = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${mailSubject}&body=${mailBody}`;
+        }
+
+        function deleteSignal(id) {
+            if(confirm("RESOLVE THIS SIGNAL?")) {
+                let signals = JSON.parse(localStorage.getItem('la_signals')) || [];
+                signals = signals.filter(s => s.id !== id);
+                localStorage.setItem('la_signals', JSON.stringify(signals));
+                render();
+            }
+        }
+
+        function notifyWaitlist() {
             const list = JSON.parse(localStorage.getItem('la_waitlist')) || [];
-            document.getElementById('stat-waitlist').innerText = list.length;
-            document.getElementById('waitlistLog').innerHTML = list.reverse().map(u => 
-                `<div style="padding:15px 0; border-bottom:1px solid #1a1a1a; display:flex; justify-content:space-between; align-items:center;">
-                    <span><b class="yellow-text">${u.user || 'UNNAMED'}</b> <span style="opacity:0.4; margin-left:10px;">${u.email}</span></span>
-                    <span style="color:#333; font-size:9px; letter-spacing:1px;">${u.date}</span>
-                </div>`).join('') || '<p style="color: #444; letter-spacing: 2px;">NO SIGNALS DETECTED.</p>';
+            if(list.length === 0) return alert('NO ONE REGISTERED.');
+            const emails = list.map(u => u.email).join(',');
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${emails}&su=${encodeURIComponent('Lost Atlantis — LIVE')}&body=${encodeURIComponent('We are now live.')}`, '_blank');
         }
 
         render();
