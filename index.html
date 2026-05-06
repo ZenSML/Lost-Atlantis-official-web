@@ -87,8 +87,8 @@
     <!-- INSTALL PROMPT -->
     <div id="install-prompt" class="install-prompt">
         <div class="install-info">
-            <span class="install-title">Lost Atlantis App</span>
-            <span id="install-desc" class="install-desc">Install for a faster, full-screen experience.</span>
+            <span class="install-title">SIGNAL DETECTED</span>
+            <span id="install-desc" class="install-desc">INITIALIZE LOCAL INSTALLATION</span>
         </div>
         <div class="install-actions">
             <button id="btn-install" class="btn-install">INSTALL</button>
@@ -289,6 +289,15 @@
 
             // Check if email already registered
             try {
+                // Wait for DB to be ready
+                if (!window.db) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                if (!window.db) {
+                    throw new Error("DATABASE_NOT_INITIALIZED");
+                }
+
                 const waitlistRef = db.collection('waitlist');
                 const snapshot = await waitlistRef.where('email', '==', email.toLowerCase()).get();
 
@@ -310,7 +319,12 @@
                 document.getElementById('success-message').style.display = 'block';
             } catch (err) {
                 console.error("Firebase Error: ", err);
-                errorEl.textContent = 'SYSTEM ERROR. PLEASE TRY AGAIN LATER.';
+                // More helpful error for debugging on iPad
+                if (err.message === "DATABASE_NOT_INITIALIZED") {
+                    errorEl.textContent = 'CONNECTION ERROR. REFRESH THE PAGE.';
+                } else {
+                    errorEl.textContent = 'SYSTEM ERROR. PLEASE TRY AGAIN LATER.';
+                }
                 errorEl.style.display = 'block';
             }
         }
