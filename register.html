@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost Atlantis | Register</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;600;900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -155,6 +156,48 @@
             color: #666;
             text-transform: uppercase;
         }
+
+        /* --- SOCIAL LOGIN --- */
+        .social-divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            color: #222;
+            font-size: 8px;
+            letter-spacing: 4px;
+        }
+        .social-divider::before, .social-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #111;
+        }
+        .social-divider span { padding: 0 15px; }
+
+        .social-btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .social-btn {
+            width: 100%;
+            padding: 14px;
+            background: #080808;
+            border: 1px solid #111;
+            color: #888;
+            font-size: 9px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-transform: uppercase;
+        }
+        .social-btn:hover { border-color: #333; color: #fff; background: #111; }
+        .social-btn img { height: 14px; filter: grayscale(1) brightness(0.8); }
+        .social-btn:hover img { filter: none; }
     </style>
 </head>
 <body>
@@ -167,16 +210,7 @@
     </div>
 
     <div class="login-wrapper">
-        <!-- COUNTDOWN TIMER -->
-        <div class="countdown-container">
-            <div class="time-box"><span id="t-years">0</span><small>YEARS</small></div>
-            <div class="time-box"><span id="t-months">0</span><small>MONTHS</small></div>
-            <div class="time-box"><span id="t-weeks">0</span><small>WEEKS</small></div>
-            <div class="time-box"><span id="t-days">0</span><small>DAYS</small></div>
-            <div class="time-box"><span id="t-hours">0</span><small>HOURS</small></div>
-            <div class="time-box"><span id="t-mins">0</span><small>MINUTES</small></div>
-            <div class="time-box"><span id="t-secs">0</span><small>SECONDS</small></div>
-        </div>
+        <!-- COUNTDOWN TIMER REMOVED AS REQUESTED -->
 
         <div class="login-card" id="form-container">
             <h2 class="login-title">CREATE ACCOUNT</h2>
@@ -185,6 +219,15 @@
             <input type="password" id="pass" placeholder="CREATE PASSWORD" class="login-input">
             <p id="reg-error" class="login-error"></p>
             <button onclick="doRegister()" class="login-btn">REGISTER</button>
+            
+            <div class="social-divider"><span>OR</span></div>
+            
+            <div class="social-btn-container">
+                <button onclick="socialSignup('google')" class="social-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> GOOGLE
+                </button>
+            </div>
+            
             <p onclick="window.location.href='login.html'" style="font-size: 8px; letter-spacing: 3px; color: #444; margin-top: 25px; cursor: pointer;">ALREADY HAVE AN ACCOUNT? LOG IN</p>
         </div>
 
@@ -195,9 +238,45 @@
             <p onclick="window.location.href='contact.html'" style="font-size: 7px; letter-spacing: 4px; color: #1a1a1a; margin-top: 25px; cursor: pointer; text-transform: uppercase;"><span style="margin-right: 5px;">ⓘ</span> Contact Support</p>
         </div>
     </div>
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-auth-compat.js"></script>
+    <script>
+        // Make Firestore and Auth globally available
+        window.db = firebase.firestore();
+        window.auth = firebase.auth();
+        console.log("Firebase initialized and connected to the mainframe.");
+    </script>
+    <script src="config.js"></script>
+    <script src="firebase-init.js"></script>
 
     <script>
-        function doRegister() {
+        async function socialSignup(providerName) {
+            let provider;
+            if (providerName === 'google') provider = new firebase.auth.GoogleAuthProvider();
+
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Add to waitlist if new
+                await db.collection('waitlist').doc(user.uid).set({
+                    user: user.displayName || 'GUEST',
+                    email: user.email.toLowerCase(),
+                    date: new Date().toLocaleDateString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('success-container').style.display = 'block';
+            } catch (err) {
+                console.error("Social Signup Error:", err);
+                document.getElementById('reg-error').innerText = "CONNECTION FAILED.";
+                document.getElementById('reg-error').style.display = "block";
+            }
+        }
+        async function doRegister() {
             const user = document.getElementById('username').value.trim();
             const email = document.getElementById('email').value.trim();
             const pass = document.getElementById('pass').value;
@@ -230,45 +309,35 @@
                 return;
             }
 
-            let members = JSON.parse(localStorage.getItem('la_waitlist')) || [];
-            if(members.some(m => m.email.toLowerCase() === email.toLowerCase())) {
-                errorEl.textContent = 'EMAIL ALREADY REGISTERED.';
+            try {
+                // Check if email exists in Firestore waitlist
+                const waitlistRef = db.collection('waitlist');
+                const snapshot = await waitlistRef.where('email', '==', email.toLowerCase()).get();
+                
+                if (!snapshot.empty) {
+                    errorEl.textContent = 'EMAIL ALREADY REGISTERED.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                // Add to Firestore
+                await waitlistRef.add({
+                    user: user,
+                    email: email.toLowerCase(),
+                    date: new Date().toLocaleDateString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('success-container').style.display = 'block';
+            } catch (err) {
+                console.error("Firebase Error: ", err);
+                errorEl.textContent = 'SYSTEM ERROR. PLEASE TRY AGAIN LATER.';
                 errorEl.style.display = 'block';
-                return;
             }
-
-            members.push({ user, email, date: new Date().toLocaleDateString() });
-            localStorage.setItem('la_waitlist', JSON.stringify(members));
-
-            document.getElementById('form-container').style.display = 'none';
-            document.getElementById('success-container').style.display = 'block';
         }
 
-        // --- COUNTDOWN LOGIC ---
-        const dropDate = new Date("December 31, 2026 00:00:00").getTime();
-
-        setInterval(() => {
-            const now = new Date().getTime();
-            const distance = dropDate - now;
-
-            if (distance < 0) return;
-
-            const years = Math.floor(distance / (1000 * 60 * 60 * 24 * 365.25));
-            const months = Math.floor((distance % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
-            const weeks = Math.floor((distance % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24 * 7));
-            const days = Math.floor((distance % (1000 * 60 * 60 * 24 * 7)) / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            document.getElementById("t-years").innerText = years;
-            document.getElementById("t-months").innerText = months;
-            document.getElementById("t-weeks").innerText = weeks;
-            document.getElementById("t-days").innerText = days;
-            document.getElementById("t-hours").innerText = hours;
-            document.getElementById("t-mins").innerText = minutes;
-            document.getElementById("t-secs").innerText = seconds;
-        }, 1000);
+        // Countdown logic removed as requested.
     </script>
 </body>
 </html>
