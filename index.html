@@ -84,17 +84,10 @@
         </div>
     </div>
 
-    <!-- INSTALL PROMPT -->
-    <div id="install-prompt" class="install-prompt">
-        <div class="install-info">
-            <span class="install-title">SIGNAL DETECTED</span>
-            <span id="install-desc" class="install-desc">INITIALIZE LOCAL INSTALLATION</span>
-        </div>
-        <div class="install-actions">
-            <button id="btn-install" class="btn-install">INSTALL</button>
-            <button id="btn-close-prompt" class="btn-close-prompt">✕</button>
-        </div>
-    </div>
+    <!-- CONTACT LINK -->
+    <a href="contact.html" class="contact-link">
+        <span style="font-size: 16px; margin-right: 8px;">ⓘ</span> CONTACT
+    </a>
     <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore-compat.js"></script>
@@ -319,12 +312,8 @@
                 document.getElementById('success-message').style.display = 'block';
             } catch (err) {
                 console.error("Firebase Error: ", err);
-                // More helpful error for debugging on iPad
-                if (err.message === "DATABASE_NOT_INITIALIZED") {
-                    errorEl.textContent = 'CONNECTION ERROR. REFRESH THE PAGE.';
-                } else {
-                    errorEl.textContent = 'SYSTEM ERROR. PLEASE TRY AGAIN LATER.';
-                }
+                // Show the raw error for debugging
+                errorEl.textContent = 'ERROR: ' + err.message.toUpperCase();
                 errorEl.style.display = 'block';
             }
         }
@@ -357,58 +346,8 @@
             }
         }, 1000);
 
-        // --- INSTALL PROMPT LOGIC ---
-        let deferredPrompt;
-        const installPrompt = document.getElementById('install-prompt');
-        const btnInstall = document.getElementById('btn-install');
-        const btnClosePrompt = document.getElementById('btn-close-prompt');
-        const installDesc = document.getElementById('install-desc');
-
-        // Check if device is iOS
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-
-        // Hide prompt when close is clicked
-        btnClosePrompt.addEventListener('click', () => {
-            installPrompt.classList.remove('visible');
-        });
-
-        if (isIOS && !isStandalone) {
-            // Show iOS specific instructions
-            installDesc.innerText = "Tap Share \u2191 then 'Add to Home Screen'";
-            btnInstall.style.display = "none"; // Hide install button since iOS handles it manually
-            setTimeout(() => {
-                installPrompt.classList.add('visible');
-            }, 3000); // Show after 3 seconds
-        } else {
-            // Android / Chrome logic
-            window.addEventListener('beforeinstallprompt', (e) => {
-                // Prevent Chrome 67 and earlier from automatically showing the prompt
-                e.preventDefault();
-                // Stash the event so it can be triggered later.
-                deferredPrompt = e;
-                // Show the prompt
-                setTimeout(() => {
-                    installPrompt.classList.add('visible');
-                }, 3000);
-            });
-
-            btnInstall.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    installPrompt.classList.remove('visible');
-                    // Show the install prompt
-                    deferredPrompt.prompt();
-                    // Wait for the user to respond to the prompt
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response to the install prompt: ${outcome}`);
-                    deferredPrompt = null;
-                }
-            });
-        }
-
         // Listen for successful installation
         window.addEventListener('appinstalled', () => {
-            installPrompt.classList.remove('visible');
             console.log('PWA was installed');
         });
 
