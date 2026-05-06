@@ -6,6 +6,10 @@
     <title>Lost Atlantis | Restricted Access</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600;900&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body style="overflow: hidden;">
@@ -62,15 +66,58 @@
         </div>
     </div>
 
+    <!-- REVIEW MODAL -->
+    <div class="modal-overlay" id="review-modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <h2 style="font-size: 12px; letter-spacing: 8px; margin-bottom: 20px; font-weight: 300;">THE EXPERIENCE</h2>
+            <p style="font-size: 9px; letter-spacing: 3px; color: #666; margin-bottom: 10px;">RATE YOUR TRANSMISSION</p>
+            <div class="star-rating" id="review-stars">
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+            </div>
+            <textarea id="review-text" class="review-textarea" placeholder="TRANSMIT FEEDBACK (OPTIONAL)"></textarea>
+            <button onclick="submitReview()" class="btn-enter">SUBMIT SIGNAL</button>
+            <p onclick="closeReview()" class="review-skip" style="margin-top: 25px;">CONTINUE TO ABYSS</p>
+        </div>
+    </div>
+
+    <!-- INSTALL PROMPT -->
+    <div id="install-prompt" class="install-prompt">
+        <div class="install-info">
+            <span class="install-title">Lost Atlantis App</span>
+            <span id="install-desc" class="install-desc">Install for a faster, full-screen experience.</span>
+        </div>
+        <div class="install-actions">
+            <button id="btn-install" class="btn-install">INSTALL</button>
+            <button id="btn-close-prompt" class="btn-close-prompt">✕</button>
+        </div>
+    </div>
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
+    <script src="firebase-init.js"></script>
+
     <script>
         // MASTER REDIRECT: If site is LIVE, nobody sees the waitlist except the admin
-        (function() {
-            const status = localStorage.getItem('la_site_status') || 'MAINTENANCE';
-            const role = localStorage.getItem('la_role');
-            if (status === 'LIVE' && role !== 'admin') {
-                window.location.href = 'login.html';
+        async function checkSiteStatus() {
+            try {
+                const doc = await db.collection('settings').doc('site_status').get();
+                const status = doc.exists ? doc.data().status : 'MAINTENANCE';
+                const role = localStorage.getItem('la_role');
+                
+                if (status === 'LIVE' && role !== 'admin') {
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error("Error checking site status: ", error);
             }
-        })();
+        }
+        // Run check after Firebase is initialized in init() or directly
+        checkSiteStatus();
 
         let scene, camera, renderer, starGroup;
 
@@ -202,7 +249,7 @@
             document.getElementById('main-portal').style.opacity = '1';
         }
 
-        function joinWaitlist() {
+        async function joinWaitlist() {
             const user = document.getElementById('w-user').value.trim();
             const email = document.getElementById('w-email').value.trim();
             const pass = document.getElementById('w-pass').value;
@@ -241,24 +288,35 @@
             }
 
             // Check if email already registered
-            const waitlist = JSON.parse(localStorage.getItem('la_waitlist')) || [];
-            if(waitlist.some(w => w.email.toLowerCase() === email.toLowerCase())) {
-                errorEl.textContent = 'THIS EMAIL IS ALREADY ON THE WAITLIST.';
+            try {
+                const waitlistRef = db.collection('waitlist');
+                const snapshot = await waitlistRef.where('email', '==', email.toLowerCase()).get();
+
+                if(!snapshot.empty) {
+                    errorEl.textContent = 'THIS EMAIL IS ALREADY ON THE WAITLIST.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                // Save to Firestore
+                await waitlistRef.add({
+                    user: user,
+                    email: email.toLowerCase(),
+                    date: new Date().toLocaleDateString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('success-message').style.display = 'block';
+            } catch (err) {
+                console.error("Firebase Error: ", err);
+                errorEl.textContent = 'SYSTEM ERROR. PLEASE TRY AGAIN LATER.';
                 errorEl.style.display = 'block';
-                return;
             }
-
-            // Save to waitlist
-            waitlist.push({ user, email, date: new Date().toLocaleDateString() });
-            localStorage.setItem('la_waitlist', JSON.stringify(waitlist));
-
-            // Show Success
-            document.getElementById('form-container').style.display = 'none';
-            document.getElementById('success-message').style.display = 'block';
         }
 
         // --- COUNTDOWN LOGIC ---
-        const dropDate = new Date("May 27, 2026 00:00:00").getTime();
+        const dropDate = new Date("June 1, 2026 00:00:00").getTime();
 
         setInterval(() => {
             const now = new Date().getTime();
@@ -284,6 +342,121 @@
                 document.getElementById("t-secs").innerText = seconds;
             }
         }, 1000);
+
+        // --- INSTALL PROMPT LOGIC ---
+        let deferredPrompt;
+        const installPrompt = document.getElementById('install-prompt');
+        const btnInstall = document.getElementById('btn-install');
+        const btnClosePrompt = document.getElementById('btn-close-prompt');
+        const installDesc = document.getElementById('install-desc');
+
+        // Check if device is iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+        // Hide prompt when close is clicked
+        btnClosePrompt.addEventListener('click', () => {
+            installPrompt.classList.remove('visible');
+        });
+
+        if (isIOS && !isStandalone) {
+            // Show iOS specific instructions
+            installDesc.innerText = "Tap Share \u2191 then 'Add to Home Screen'";
+            btnInstall.style.display = "none"; // Hide install button since iOS handles it manually
+            setTimeout(() => {
+                installPrompt.classList.add('visible');
+            }, 3000); // Show after 3 seconds
+        } else {
+            // Android / Chrome logic
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Prevent Chrome 67 and earlier from automatically showing the prompt
+                e.preventDefault();
+                // Stash the event so it can be triggered later.
+                deferredPrompt = e;
+                // Show the prompt
+                setTimeout(() => {
+                    installPrompt.classList.add('visible');
+                }, 3000);
+            });
+
+            btnInstall.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    installPrompt.classList.remove('visible');
+                    // Show the install prompt
+                    deferredPrompt.prompt();
+                    // Wait for the user to respond to the prompt
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    deferredPrompt = null;
+                }
+            });
+        }
+
+        // Listen for successful installation
+        window.addEventListener('appinstalled', () => {
+            installPrompt.classList.remove('visible');
+            console.log('PWA was installed');
+        });
+
+        // --- SESSION TIMER (30 MIN REVIEW) ---
+        let sessionStart = localStorage.getItem('la_session_start');
+        if (!sessionStart) {
+            sessionStart = Date.now();
+            localStorage.setItem('la_session_start', sessionStart);
+        }
+
+        function checkSessionTime() {
+            const now = Date.now();
+            const elapsed = now - parseInt(sessionStart);
+            const lastPrompted = localStorage.getItem('la_review_prompted_time');
+            
+            // 30 minutes = 1,800,000 ms
+            // 1 Year = 31,536,000,000 ms
+            const oneYear = 31536000000;
+            
+            if (elapsed > 1800000) {
+                if (!lastPrompted || (now - parseInt(lastPrompted)) > oneYear) {
+                    document.getElementById('review-modal').style.display = 'flex';
+                    localStorage.setItem('la_review_prompted_time', now.toString());
+                }
+            }
+        }
+        setInterval(checkSessionTime, 60000); // Check every minute
+
+        // Review Star Logic
+        let selectedRating = 0;
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', () => {
+                selectedRating = star.getAttribute('data-value');
+                updateStars(selectedRating);
+            });
+        });
+
+        function updateStars(val) {
+            document.querySelectorAll('.star').forEach(star => {
+                star.classList.toggle('active', star.getAttribute('data-value') <= val);
+            });
+        }
+
+        async function submitReview() {
+            const feedback = document.getElementById('review-text').value.trim();
+            try {
+                await db.collection('reviews').add({
+                    rating: parseInt(selectedRating),
+                    feedback: feedback,
+                    date: new Date().toLocaleDateString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                closeReview();
+            } catch (error) {
+                console.error("Error submitting review: ", error);
+                closeReview();
+            }
+        }
+
+        function closeReview() {
+            document.getElementById('review-modal').style.display = 'none';
+        }
 
         init();
     </script>
